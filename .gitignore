@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+*.sqlite*
+.env
+node_modules/
+dist/
+playwright-report/
+test-results/
