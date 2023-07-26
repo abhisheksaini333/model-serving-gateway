@@ -89,3 +89,53 @@ class Store:
     def close(self):
         with self.lock:
             self.connection.close()
+
+    def start(self, tenant: str, request_id: str, backend: str) -> bool:
+        with self.transaction() as connection:
+            cursor = connection.execute(
+                """
+                UPDATE requests SET state = 'running', backend = ?, updated = ?
+                WHERE tenant = ? AND request_id = ? AND state = 'queued'
+            """,
+                (backend, time.time(), tenant, request_id),
+            )
+            return cursor.rowcount == 1
+
+    def finish(
+        self,
+        tenant: str,
+        request_id: str,
+        state: str,
+        *,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        latency_ms: float | None = None,
+        ttft_ms: float | None = None,
+        cached: bool = False,
+        error_code: str | None = None
+    ) -> bool:
+        if state not in {"completed", "failed", "cancelled", "expired", "abandoned"}:
+            raise ValueError("terminal state required")
+        if min(input_tokens, output_tokens) < 0:
+            raise ValueError("token counts cannot be negative")
+        with self.transaction() as connection:
+            cursor = connection.execute(
+                """
+                UPDATE requests SET state = ?, updated = ?, input_tokens = ?,
+                    output_tokens = ?, latency_ms = ?, ttft_ms = ?, cached = ?, error_code = ?
+                WHERE tenant = ? AND request_id = ? AND state IN ('queued', 'running')
+            """,
+                (
+                    state,
+                    time.time(),
+                    input_tokens,
+                    output_tokens,
+                    latency_ms,
+                    ttft_ms,
+                    int(cached),
+                    error_code,
+                    tenant,
+                    request_id,
+                ),
+            )
+            return cursor.rowcount == 1
