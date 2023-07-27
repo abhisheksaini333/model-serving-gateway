@@ -9,6 +9,7 @@ from .errors import GatewayError
 
 class Store:
     def __init__(self, path: str | Path):
+        self.path = Path(path).resolve()
         self.connection = sqlite3.connect(
             str(path), timeout=5, check_same_thread=False, isolation_level=None
         )
@@ -139,3 +140,16 @@ class Store:
                 ),
             )
             return cursor.rowcount == 1
+
+    def recover(self, owner) -> int:
+        if not owner.held or owner.database != self.path:
+            raise RuntimeError("exclusive ownership of this ledger is required")
+        with self.transaction() as connection:
+            cursor = connection.execute(
+                """
+                UPDATE requests SET state = 'abandoned', error_code = 'process_restart', updated = ?
+                WHERE state IN ('queued', 'running')
+            """,
+                (time.time(),),
+            )
+            return cursor.rowcount
