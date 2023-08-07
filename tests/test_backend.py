@@ -106,3 +106,20 @@ def test_generator_exception_is_sanitized_and_does_not_hang():
         assert backend.active_workers == 0
 
     asyncio.run(scenario())
+
+
+def test_backend_cleanup_does_not_cancel_the_callers_fallback_request():
+    class BrokenModel:
+        def generate(self, **kwargs):
+            raise RuntimeError("backend unavailable")
+
+    async def scenario():
+        cancel = threading.Event()
+        with pytest.raises(GatewayError):
+            async for _ in adapter(BrokenModel()).stream(
+                GenerationRequest(model="flan-small", prompt="hello"), cancel
+            ):
+                pass
+        assert not cancel.is_set()
+
+    asyncio.run(scenario())

@@ -50,9 +50,11 @@ class LocalTransformersBackend:
             TextIteratorStreamer,
         )
 
+        stop = threading.Event()
+
         class Cancelled(StoppingCriteria):
             def __call__(self, input_ids, scores, **kwargs):
-                return cancel.is_set()
+                return cancel.is_set() or stop.is_set()
 
         inputs = self.tokenizer(request.prompt, return_tensors="pt", truncation=False)
         input_tokens = int(inputs["input_ids"].shape[-1])
@@ -120,7 +122,7 @@ class LocalTransformersBackend:
                 finish_reason=reason,
             )
         finally:
-            cancel.set()
+            stop.set()
             await asyncio.to_thread(worker.join)
             with self._lock:
                 self._workers.discard(worker)
