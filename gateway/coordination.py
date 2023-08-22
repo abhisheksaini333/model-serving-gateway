@@ -1,11 +1,13 @@
 """Redis admission fails closed; rejected attempts never invoke inference."""
 import hashlib
+import json
 import math
 import re
 from dataclasses import dataclass
 from redis import asyncio as redis
 from redis.exceptions import RedisError
 from .errors import GatewayError
+from .cache import CacheEntry
 from .quota_scripts import RESERVE, SETTLE
 
 
@@ -101,3 +103,22 @@ class RedisCoordinator:
 
     async def close(self):
         await self.client.close()
+
+    async def cache_get(self, key: str) -> dict | None:
+        name = self.namespace + ":" + key
+        raw = await self.execute(self.client.get, name)
+        if raw is None:
+            return None
+        try:
+            return CacheEntry.parse_raw(raw).dict()
+        except ValueError:
+            await self.execute(self.client.delete, name)
+            return None
+
+    async def cache_put(self, key: str, value: dict, ttl: int = 300):
+        if type(ttl) is not int or not 1 <= ttl <= 3600:
+            raise ValueError("cache TTL must be between 1 and 3600 seconds")
+        entry = CacheEntry(**value)
+        await self.execute(
+            self.client.set, self.namespace + ":" + key, entry.json(), ex=ttl
+        )
