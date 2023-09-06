@@ -15,9 +15,27 @@ class Job:
         self.started = time.monotonic()
         self.deadline = self.started + request.timeout_ms / 1000
         self.stop = threading.Event()
+        self.cancelled = asyncio.Event()
+        self.cancel_reason = "cancelled"
         self.queue = asyncio.Queue(maxsize=1024)
         self.task = None
         self.phase = "queued"
+
+    def cancel(self, reason="cancelled"):
+        self.cancel_reason = reason
+        self.stop.set()
+        self.cancelled.set()
+
+    def raise_if_cancelled(self):
+        if self.stop.is_set():
+            status = 504 if self.cancel_reason == "deadline_exceeded" else 499
+            raise GatewayError(
+                self.cancel_reason,
+                "Request deadline expired."
+                if status == 504
+                else "Request was cancelled.",
+                status,
+            )
 
     async def events(self):
         while True:
@@ -62,6 +80,33 @@ class Engine:
         job.task = asyncio.create_task(self._run(job, reservation, key))
         return job
 
+    def cancel(self, tenant: str, request_id: str) -> bool:
+        job = self.jobs.get((tenant, request_id))
+        if job is None:
+            return False
+        job.cancel()
+        return True
+
+    async def _acquire(self, job):
+        waiting = asyncio.create_task(self.admission.acquire(job.tenant, job.deadline))
+        cancelled = asyncio.create_task(job.cancelled.wait())
+        try:
+            await asyncio.wait(
+                {waiting, cancelled}, return_when=asyncio.FIRST_COMPLETED
+            )
+            if waiting.done() and not waiting.cancelled():
+                lease = waiting.result()
+                if job.stop.is_set():
+                    await lease.release()
+                    job.raise_if_cancelled()
+                return lease
+            waiting.cancel()
+            await asyncio.gather(waiting, return_exceptions=True)
+            job.raise_if_cancelled()
+        finally:
+            cancelled.cancel()
+            await asyncio.gather(cancelled, return_exceptions=True)
+
     async def _run(self, job, reservation, key):
         request = job.request
         lease = None
@@ -71,8 +116,13 @@ class Engine:
         text, backend, ttft = "", "", None
         state, error_code = "failed", None
         cached = False
+        timer = asyncio.get_running_loop().call_at(
+            job.deadline, job.cancel, "deadline_exceeded"
+        )
         try:
+            job.raise_if_cancelled()
             entry = await self.coordinator.cache_get(key) if key else None
+            job.raise_if_cancelled()
             if entry is not None:
                 cached = True
                 text, backend, reason = (
@@ -85,7 +135,7 @@ class Engine:
                     {"type": "token", "text": text, "request_id": request.request_id}
                 )
             else:
-                lease = await self.admission.acquire(job.tenant, job.deadline)
+                lease = await self._acquire(job)
                 job.phase = "running"
                 self.store.start(job.tenant, request.request_id, "pending")
                 stream = self.router.stream(request, job.stop)
@@ -119,6 +169,7 @@ class Engine:
                     )
                 usage, reason = final.usage, final.finish_reason
                 actual_tokens = usage.output_tokens
+                job.raise_if_cancelled()
                 if key and reason in {"stop", "length"}:
                     await self.coordinator.cache_put(
                         key,
@@ -131,6 +182,7 @@ class Engine:
                         ),
                         self.cache_ttl,
                     )
+            job.raise_if_cancelled()
             state = "completed"
             response = GenerationResponse(
                 request_id=request.request_id,
@@ -146,7 +198,11 @@ class Engine:
             job.queue.put_nowait({"type": "result", "response": response.dict()})
         except GatewayError as error:
             error_code = error.code
-            state = "expired" if error.code == "deadline_exceeded" else "failed"
+            state = (
+                "expired"
+                if error.code == "deadline_exceeded"
+                else ("cancelled" if error.code == "cancelled" else "failed")
+            )
             job.queue.put_nowait(
                 {"type": "error", **error.payload(), "status": error.status}
             )
@@ -154,6 +210,7 @@ class Engine:
             state, error_code = "cancelled", "cancelled"
             job.stop.set()
         finally:
+            timer.cancel()
             if stream is not None:
                 await stream.aclose()
             if lease is not None:
@@ -181,9 +238,7 @@ class Engine:
         await self.admission.drain()
         tasks = [job.task for job in self.jobs.values()]
         for job in list(self.jobs.values()):
-            job.stop.set()
-            if job.phase == "queued":
-                job.task.cancel()
+            job.cancel()
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
         await self.coordinator.close()
