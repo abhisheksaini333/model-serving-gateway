@@ -37,12 +37,16 @@ async def stop_watcher(task):
     await asyncio.gather(task, return_exceptions=True)
 
 
-def create_app(engine, auth):
+def create_app(engine, auth, owner=None):
     @asynccontextmanager
     async def lifespan(app):
-        yield
-        await engine.close()
-        engine.store.close()
+        try:
+            yield
+        finally:
+            await engine.close()
+            engine.store.close()
+            if owner is not None:
+                owner.__exit__(None, None, None)
 
     app = FastAPI(title="Model Serving Gateway", version="0.1.0", lifespan=lifespan)
     app.state.engine = engine
