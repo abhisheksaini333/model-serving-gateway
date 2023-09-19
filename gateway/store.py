@@ -38,6 +38,18 @@ class Store:
         """
         )
 
+        self.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS operator_audit (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created REAL NOT NULL,
+                action TEXT NOT NULL,
+                target TEXT NOT NULL,
+                value TEXT NOT NULL
+            )
+        """
+        )
+
     @contextmanager
     def transaction(self):
         with self.lock:
@@ -153,3 +165,51 @@ class Store:
                 (time.time(),),
             )
             return cursor.rowcount
+
+    def recent(self, *, tenant: str | None = None, limit: int = 50) -> list[dict]:
+        if type(limit) is not int or not 1 <= limit <= 100:
+            raise ValueError("limit must be between 1 and 100")
+        where, values = ("WHERE tenant = ?", [tenant]) if tenant else ("", [])
+        with self.lock:
+            rows = self.connection.execute(
+                "SELECT * FROM requests "
+                + where
+                + " ORDER BY created DESC, rowid DESC LIMIT ?",
+                values + [limit],
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def usage(self) -> list[dict]:
+        with self.lock:
+            rows = self.connection.execute(
+                """
+                SELECT tenant, COUNT(*) AS requests, SUM(input_tokens) AS input_tokens,
+                       SUM(output_tokens) AS output_tokens, SUM(cached) AS cache_hits,
+                       SUM(CASE WHEN state = 'completed' THEN 1 ELSE 0 END) AS completed,
+                       AVG(latency_ms) AS mean_latency_ms
+                FROM requests GROUP BY tenant ORDER BY tenant
+            """
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def audit(self, action: str, target: str, value: str):
+        allowed = {
+            "backend_mode": {"enabled", "draining", "disabled"},
+            "gateway_mode": {"draining"},
+        }
+        if action not in allowed or value not in allowed[action] or len(target) > 80:
+            raise ValueError("unsupported operator action")
+        with self.transaction() as connection:
+            connection.execute(
+                """
+                INSERT INTO operator_audit (created, action, target, value) VALUES (?, ?, ?, ?)
+            """,
+                (time.time(), action, target, value),
+            )
+
+    def audit_events(self) -> list[dict]:
+        with self.lock:
+            rows = self.connection.execute(
+                "SELECT * FROM operator_audit ORDER BY id DESC LIMIT 100"
+            ).fetchall()
+        return [dict(row) for row in rows]
