@@ -6,6 +6,7 @@ from .contracts import GenerationRequest, GenerationResponse, Usage
 from .coordination import TenantLimits
 from .errors import GatewayError
 from .identity import fingerprint, cache_key
+from .metrics import Metrics
 
 
 class Job:
@@ -54,6 +55,7 @@ class Engine:
         self.cache_ttl = cache_ttl
         self.jobs = {}
         self.settlement_failures = 0
+        self.metrics = Metrics(admission)
 
     async def submit(
         self, tenant: str, request: GenerationRequest, limits: TenantLimits
@@ -230,6 +232,14 @@ class Engine:
                 await self.coordinator.settle(reservation, actual_tokens)
             except GatewayError:
                 self.settlement_failures += 1
+            self.metrics.observe(
+                job.tenant,
+                state,
+                cached,
+                usage.output_tokens,
+                time.monotonic() - job.started,
+                ttft / 1000 if ttft is not None else None,
+            )
             job.phase = state
             self.jobs.pop((job.tenant, request.request_id), None)
             job.queue.put_nowait(None)
