@@ -80,3 +80,48 @@ def test_reading_request_status_never_crosses_tenant(tmp_path):
         assert own.json()["state"] == "completed"
         assert "prompt" not in own.json()
         assert other.status_code == 404
+
+
+def test_operator_controls_require_role_and_reject_stale_updates(tmp_path):
+    with make_client(tmp_path) as client:
+        operator = {"Authorization": "Bearer " + OPERATOR}
+        tenant = {"Authorization": "Bearer " + ALPHA}
+        assert client.get("/ops/summary", headers=tenant).status_code == 401
+        summary = client.get("/ops/summary", headers=operator).json()
+        assert summary["admission"]["capacity"] == 1
+        changed = client.post(
+            "/ops/backends/cpu-a/mode",
+            headers=operator,
+            json={"mode": "disabled", "expected_mode": "enabled"},
+        )
+        assert changed.status_code == 200
+        stale = client.post(
+            "/ops/backends/cpu-a/mode",
+            headers=operator,
+            json={"mode": "enabled", "expected_mode": "enabled"},
+        )
+        assert stale.status_code == 409
+        assert client.get("/health/ready").status_code == 503
+        assert (
+            client.get("/ops/audit", headers=operator).json()[0]["value"] == "disabled"
+        )
+        assert client.get("/metrics", headers=operator).status_code == 200
+        assert client.get("/metrics", headers=tenant).status_code == 401
+
+
+def test_global_drain_refuses_cached_and_uncached_new_admission(tmp_path):
+    with make_client(tmp_path) as client:
+        tenant = {"Authorization": "Bearer " + ALPHA}
+        payload = {"model": "flan-small", "prompt": "hello"}
+        assert (
+            client.post("/v1/generate", json=payload, headers=tenant).status_code == 200
+        )
+        assert (
+            client.post(
+                "/ops/drain", headers={"Authorization": "Bearer " + OPERATOR}
+            ).status_code
+            == 200
+        )
+        response = client.post("/v1/generate", json=payload, headers=tenant)
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "draining"

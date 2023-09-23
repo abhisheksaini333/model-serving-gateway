@@ -60,6 +60,8 @@ class Engine:
     async def submit(
         self, tenant: str, request: GenerationRequest, limits: TenantLimits
     ):
+        if self.admission.draining:
+            raise GatewayError("draining", "The gateway is draining.")
         specs = self.router.registry.for_model(request.model)
         job = Job(tenant, request)
         self.store.create(tenant, request.request_id, fingerprint(request))

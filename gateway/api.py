@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from .contracts import GenerationRequest
 from .errors import GatewayError
+from .operations import operator_routes
 
 
 def event_error(event):
@@ -144,4 +145,5 @@ def create_app(engine, auth, owner=None):
             raise GatewayError("not_active", "No active request was found.", 404)
         return {"request_id": request_id, "cancellation_requested": True}
 
+    app.include_router(operator_routes(engine, auth))
     return app
