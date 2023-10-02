@@ -1,0 +1,629 @@
+{
+  "adapter": "actual-transformers-cpu-over-http",
+  "model": "google/flan-t5-small",
+  "revision": "371f99f1df1429771f01227c93bd662f5eec2480",
+  "hardware": {
+    "platform": "macOS-26.5.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "logical_cpus": 11,
+    "torch_threads": 2
+  },
+  "workload": {
+    "prompt": "Translate English to German: The little girl walks along the river every morning with her grandfather. They watch the birds and talk about the flowers in the garden. When the weather is cold, they wear warm coats and carry a basket of fresh bread.",
+    "max_new_tokens": 128,
+    "normal_requests": 8,
+    "overload_concurrency": 12,
+    "capacity": 1,
+    "queue_size": 2,
+    "cache_enabled": false
+  },
+  "normal": {
+    "summary": {
+      "requests": 8,
+      "error_rate": 0.0,
+      "latency_ms": {
+        "p50": 420.2633339446038,
+        "p95": 618.106208043173
+      },
+      "ttft_ms": {
+        "p50": 28.879624791443348,
+        "p95": 193.51037498563528
+      },
+      "successful_request_tokens_per_second": 129.49697931375752
+    },
+    "requests": [
+      {
+        "status": 200,
+        "request_id": "86d7dec67ea340a9b5a71ed9e1872c4c",
+        "latency_ms": 618.106208043173,
+        "ttft_ms": 193.51037498563528,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "86d7dec67ea340a9b5a71ed9e1872c4c",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 612.8782080486417,
+          "ttft_ms": 193.51037498563528
+        }
+      },
+      {
+        "status": 200,
+        "request_id": "ecd4b4890f524825aa9b4a69c8ddbfef",
+        "latency_ms": 428.29716694541276,
+        "ttft_ms": 28.098249807953835,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "ecd4b4890f524825aa9b4a69c8ddbfef",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 423.6058748792857,
+          "ttft_ms": 28.098249807953835
+        }
+      },
+      {
+        "status": 200,
+        "request_id": "7fdf0e4a3d0b4054962943d6d972d364",
+        "latency_ms": 485.2645839564502,
+        "ttft_ms": 32.13862515985966,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "7fdf0e4a3d0b4054962943d6d972d364",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 480.3615000564605,
+          "ttft_ms": 32.13862515985966
+        }
+      },
+      {
+        "status": 200,
+        "request_id": "3e93a598cc2849f88c1410485a45924b",
+        "latency_ms": 401.06762503273785,
+        "ttft_ms": 28.521416010335088,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "3e93a598cc2849f88c1410485a45924b",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 396.4096661657095,
+          "ttft_ms": 28.521416010335088
+        }
+      },
+      {
+        "status": 200,
+        "request_id": "2f734893438140caa8878570683a55b1",
+        "latency_ms": 603.9767910260707,
+        "ttft_ms": 36.84604121372104,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "2f734893438140caa8878570683a55b1",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 598.8188330084085,
+          "ttft_ms": 36.84604121372104
+        }
+      },
+      {
+        "status": 200,
+        "request_id": "bf262d7a297648ae90d567ccc12e4546",
+        "latency_ms": 420.2633339446038,
+        "ttft_ms": 29.615832958370447,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "bf262d7a297648ae90d567ccc12e4546",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 413.5044999420643,
+          "ttft_ms": 29.615832958370447
+        }
+      },
+      {
+        "status": 200,
+        "request_id": "14ae6e2e02a84e2eb66997b510159aa8",
+        "latency_ms": 384.42225009202957,
+        "ttft_ms": 28.879624791443348,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "14ae6e2e02a84e2eb66997b510159aa8",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 379.3212918099016,
+          "ttft_ms": 28.879624791443348
+        }
+      },
+      {
+        "status": 200,
+        "request_id": "d5d8887a9add4523bc6ea98f0ff8b0cb",
+        "latency_ms": 365.25220796465874,
+        "ttft_ms": 27.036000043153763,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "d5d8887a9add4523bc6ea98f0ff8b0cb",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 360.2977499831468,
+          "ttft_ms": 27.036000043153763
+        }
+      }
+    ]
+  },
+  "overload": {
+    "summary": {
+      "requests": 12,
+      "error_rate": 0.75,
+      "latency_ms": {
+        "p50": 23.74316705390811,
+        "p95": 1158.600333146751
+      },
+      "ttft_ms": {
+        "p50": 434.7487920895219,
+        "p95": 804.3777500279248
+      },
+      "successful_request_tokens_per_second": 76.26673084688032
+    },
+    "requests": [
+      {
+        "status": 200,
+        "request_id": "906f451f48a9432d81ab4dc684f97562",
+        "latency_ms": 415.3916658833623,
+        "ttft_ms": 44.73729198798537,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "906f451f48a9432d81ab4dc684f97562",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 408.43333303928375,
+          "ttft_ms": 44.73729198798537
+        }
+      },
+      {
+        "status": 503,
+        "request_id": "c18ba82ba7ad4cbeab21207a3420c679",
+        "latency_ms": 23.74316705390811,
+        "ttft_ms": null,
+        "output_tokens": 0,
+        "body": {
+          "error": {
+            "code": "queue_full",
+            "message": "The inference queue is full."
+          }
+        }
+      },
+      {
+        "status": 200,
+        "request_id": "673977ba94a848e9b87418e7da4448dc",
+        "latency_ms": 1158.600333146751,
+        "ttft_ms": 804.3777500279248,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "673977ba94a848e9b87418e7da4448dc",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 1149.6344581246376,
+          "ttft_ms": 804.3777500279248
+        }
+      },
+      {
+        "status": 503,
+        "request_id": "6427007056ee47678e2510342051875f",
+        "latency_ms": 20.23895806632936,
+        "ttft_ms": null,
+        "output_tokens": 0,
+        "body": {
+          "error": {
+            "code": "queue_full",
+            "message": "The inference queue is full."
+          }
+        }
+      },
+      {
+        "status": 200,
+        "request_id": "4d15778e70ec490fa9ecaf1ca3263dab",
+        "latency_ms": 786.1458749976009,
+        "ttft_ms": 434.7487920895219,
+        "output_tokens": 60,
+        "body": {
+          "request_id": "4d15778e70ec490fa9ecaf1ca3263dab",
+          "model": "flan-small",
+          "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 53,
+            "output_tokens": 60
+          },
+          "cached": false,
+          "backend": "cpu-a",
+          "latency_ms": 776.3002079445869,
+          "ttft_ms": 434.7487920895219
+        }
+      },
+      {
+        "status": 503,
+        "request_id": "500f5b3a79d8490eb65b192af03c9e21",
+        "latency_ms": 22.83387491479516,
+        "ttft_ms": null,
+        "output_tokens": 0,
+        "body": {
+          "error": {
+            "code": "queue_full",
+            "message": "The inference queue is full."
+          }
+        }
+      },
+      {
+        "status": 503,
+        "request_id": "3470283bfd6d44f0b1e243e9134c6ce6",
+        "latency_ms": 22.05233392305672,
+        "ttft_ms": null,
+        "output_tokens": 0,
+        "body": {
+          "error": {
+            "code": "queue_full",
+            "message": "The inference queue is full."
+          }
+        }
+      },
+      {
+        "status": 503,
+        "request_id": "d7528a80086945f381d884ecbe84d2f4",
+        "latency_ms": 21.11833286471665,
+        "ttft_ms": null,
+        "output_tokens": 0,
+        "body": {
+          "error": {
+            "code": "queue_full",
+            "message": "The inference queue is full."
+          }
+        }
+      },
+      {
+        "status": 503,
+        "request_id": "7f41dc2dcb964eb483557d3553947e3b",
+        "latency_ms": 24.2464158218354,
+        "ttft_ms": null,
+        "output_tokens": 0,
+        "body": {
+          "error": {
+            "code": "queue_full",
+            "message": "The inference queue is full."
+          }
+        }
+      },
+      {
+        "status": 503,
+        "request_id": "c25b9e2cf7f44c8aa97713f89277a1cc",
+        "latency_ms": 24.375499924644828,
+        "ttft_ms": null,
+        "output_tokens": 0,
+        "body": {
+          "error": {
+            "code": "queue_full",
+            "message": "The inference queue is full."
+          }
+        }
+      },
+      {
+        "status": 503,
+        "request_id": "298c5ff7e6a24821974a3f9821d1d1c2",
+        "latency_ms": 23.789791855961084,
+        "ttft_ms": null,
+        "output_tokens": 0,
+        "body": {
+          "error": {
+            "code": "queue_full",
+            "message": "The inference queue is full."
+          }
+        }
+      },
+      {
+        "status": 503,
+        "request_id": "16ee8149d8a24182aaad798590015a8b",
+        "latency_ms": 23.387416964396834,
+        "ttft_ms": null,
+        "output_tokens": 0,
+        "body": {
+          "error": {
+            "code": "queue_full",
+            "message": "The inference queue is full."
+          }
+        }
+      }
+    ]
+  },
+  "cancellation": [
+    {
+      "mode": "client_disconnect",
+      "observed_worker_count": 1,
+      "final_worker_count": 0,
+      "capacity_after": {
+        "active": 0,
+        "queued": 0,
+        "capacity": 1,
+        "max_queue": 2,
+        "draining": false
+      },
+      "record": {
+        "tenant": "alpha",
+        "request_id": "c85f45c2c5174a2299cdd65b18b25942",
+        "fingerprint": "ccdab5a635b08563ec637d209f19b7f262f1b7163b07eaf3b90226e7d02edee0",
+        "state": "cancelled",
+        "backend": "pending",
+        "created": 1790753553.432159,
+        "updated": 1790753553.472118,
+        "input_tokens": 53,
+        "output_tokens": 3,
+        "latency_ms": 40.05766683258116,
+        "ttft_ms": 29.809582978487015,
+        "cached": 0,
+        "error_code": "cancelled"
+      },
+      "elapsed_ms": 70.77495800331235
+    },
+    {
+      "mode": "explicit",
+      "observed_worker_count": 1,
+      "final_worker_count": 0,
+      "capacity_after": {
+        "active": 0,
+        "queued": 0,
+        "capacity": 1,
+        "max_queue": 2,
+        "draining": false
+      },
+      "record": {
+        "tenant": "alpha",
+        "request_id": "500c821cecc442deba16502633888cd6",
+        "fingerprint": "ccdab5a635b08563ec637d209f19b7f262f1b7163b07eaf3b90226e7d02edee0",
+        "state": "cancelled",
+        "backend": "pending",
+        "created": 1790753553.5025978,
+        "updated": 1790753553.55097,
+        "input_tokens": 53,
+        "output_tokens": 3,
+        "latency_ms": 48.475417075678706,
+        "ttft_ms": 33.97825011052191,
+        "cached": 0,
+        "error_code": "cancelled"
+      },
+      "elapsed_ms": 74.54445795156062
+    }
+  ],
+  "deadline": {
+    "status": 504,
+    "request_id": "308edf37dce447658d4e693fbe8d3870",
+    "latency_ms": 106.16112500429153,
+    "ttft_ms": null,
+    "output_tokens": 0,
+    "body": {
+      "error": {
+        "code": "deadline_exceeded",
+        "message": "Request deadline expired."
+      }
+    }
+  },
+  "quota": [
+    {
+      "status": 200,
+      "request_id": "d6281ee2fd57427fa906fe5fc430614e",
+      "latency_ms": 428.15916589461267,
+      "ttft_ms": 26.579625206068158,
+      "output_tokens": 60,
+      "body": {
+        "request_id": "d6281ee2fd57427fa906fe5fc430614e",
+        "model": "flan-small",
+        "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+        "finish_reason": "stop",
+        "usage": {
+          "input_tokens": 53,
+          "output_tokens": 60
+        },
+        "cached": false,
+        "backend": "cpu-a",
+        "latency_ms": 420.482334215194,
+        "ttft_ms": 26.579625206068158
+      }
+    },
+    {
+      "status": 200,
+      "request_id": "2ef1996761434fdc9209361482c9e980",
+      "latency_ms": 400.9061250835657,
+      "ttft_ms": 37.019999930635095,
+      "output_tokens": 60,
+      "body": {
+        "request_id": "2ef1996761434fdc9209361482c9e980",
+        "model": "flan-small",
+        "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+        "finish_reason": "stop",
+        "usage": {
+          "input_tokens": 53,
+          "output_tokens": 60
+        },
+        "cached": false,
+        "backend": "cpu-a",
+        "latency_ms": 394.61841713637114,
+        "ttft_ms": 37.019999930635095
+      }
+    },
+    {
+      "status": 429,
+      "request_id": "140ee7cb642440fe9fff9a404d2082d7",
+      "latency_ms": 4.810083191841841,
+      "ttft_ms": null,
+      "output_tokens": 0,
+      "body": {
+        "error": {
+          "code": "request_quota",
+          "message": "Tenant admission limit reached."
+        }
+      }
+    }
+  ],
+  "backend_outage": {
+    "method": "operator disables the real backend before admission",
+    "request": {
+      "status": 503,
+      "request_id": "dded9d6a9b0e41478473ff58a896c429",
+      "latency_ms": 5.270791007205844,
+      "ttft_ms": null,
+      "output_tokens": 0,
+      "body": {
+        "error": {
+          "code": "unavailable",
+          "message": "No inference backend is available."
+        }
+      }
+    },
+    "recovery": {
+      "status": 200,
+      "request_id": "b50fc4a8ef6b43d2b1f22f0ffe1f1e8c",
+      "latency_ms": 390.5395830515772,
+      "ttft_ms": 29.19112518429756,
+      "output_tokens": 60,
+      "body": {
+        "request_id": "b50fc4a8ef6b43d2b1f22f0ffe1f1e8c",
+        "model": "flan-small",
+        "text": "Das kleine M\u00e4dchen l\u00e4dt zum Meer auf jeden Tag zum Meer jedes Morgen mit ihren F\u00fchrer. Sie h\u00f6ren die oiseaux und h\u00f6ren die Bl\u00fcten in der Garten. Wenn die Wetter erw\u00e4hnen, er mitten mitten und mitten mitten mitten.",
+        "finish_reason": "stop",
+        "usage": {
+          "input_tokens": 53,
+          "output_tokens": 60
+        },
+        "cached": false,
+        "backend": "cpu-a",
+        "latency_ms": 383.80629220046103,
+        "ttft_ms": 29.19112518429756
+      }
+    }
+  },
+  "redis_outage": {
+    "status": 503,
+    "request_id": "1e16dd384a6d42d1b4dc5f7d8ba1c8f8",
+    "latency_ms": 12.25825003348291,
+    "ttft_ms": null,
+    "output_tokens": 0,
+    "body": {
+      "error": {
+        "code": "coordination_unavailable",
+        "message": "Admission storage is unavailable."
+      }
+    }
+  },
+  "final": {
+    "admission": {
+      "active": 0,
+      "queued": 0,
+      "capacity": 1,
+      "max_queue": 2,
+      "draining": false
+    },
+    "backends": [
+      {
+        "name": "cpu-a",
+        "model": "flan-small",
+        "revision": "371f99f1df1429771f01227c93bd662f5eec2480",
+        "active": 0,
+        "capacity": 1,
+        "mode": "enabled",
+        "circuit": "closed",
+        "failures": 0
+      }
+    ],
+    "usage": [
+      {
+        "tenant": "alpha",
+        "requests": 26,
+        "input_tokens": 795,
+        "output_tokens": 740,
+        "cache_hits": 0,
+        "completed": 12,
+        "mean_latency_ms": 266.2885716278106
+      },
+      {
+        "tenant": "limited",
+        "requests": 3,
+        "input_tokens": 106,
+        "output_tokens": 120,
+        "cache_hits": 0,
+        "completed": 2,
+        "mean_latency_ms": 407.64462563674897
+      }
+    ],
+    "settlement_failures": 0,
+    "workers": 0
+  },
+  "limits": [
+    "CPU only; no GPU or vLLM measurement",
+    "Small local workload, shared host; not a capacity SLA",
+    "TTFT means first nonempty decoded text, not first internal decoder token",
+    "Tokens per second includes successful request queue and inference latency"
+  ]
+}
