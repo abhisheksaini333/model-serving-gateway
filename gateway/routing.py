@@ -77,6 +77,13 @@ class Router:
                 if emitted or error.code != "backend_failed":
                     raise
                 last_error = error
+            except Exception:
+                breaker.failure()
+                last_error = GatewayError(
+                    "backend_failed", "The inference backend failed."
+                )
+                if emitted:
+                    raise last_error from None
             finally:
                 await stream.aclose()
                 self.active[name] -= 1

@@ -66,6 +66,7 @@ def create_app(engine, auth, owner=None):
 
     @app.get("/health/ready")
     async def ready():
+        engine.check_ready()
         await engine.coordinator.healthy()
         if engine.admission.draining:
             raise GatewayError("draining", "The gateway is draining.")
@@ -96,7 +97,7 @@ def create_app(engine, auth, owner=None):
             if not job.task.done():
                 job.cancel()
                 with anyio.CancelScope(shield=True):
-                    await job.task
+                    await asyncio.shield(job.task)
 
     @app.post("/v1/stream")
     async def stream(body: GenerationRequest, request: Request):
@@ -108,7 +109,7 @@ def create_app(engine, auth, owner=None):
             if first is None:
                 raise GatewayError("cancelled", "Request was cancelled.", 499)
             if first["type"] == "error":
-                await job.task
+                await asyncio.shield(job.task)
                 raise event_error(first)
         finally:
             await stop_watcher(watcher)
@@ -122,7 +123,7 @@ def create_app(engine, auth, owner=None):
                 if not job.task.done():
                     job.cancel()
                     with anyio.CancelScope(shield=True):
-                        await job.task
+                        await asyncio.shield(job.task)
 
         return StreamingResponse(
             body_events(),

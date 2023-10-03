@@ -1,6 +1,7 @@
 """Request lifecycle joins admission, routing, cache and durable usage."""
 import asyncio
 import threading
+import sqlite3
 import time
 from .contracts import GenerationRequest, GenerationResponse, Usage
 from .coordination import TenantLimits
@@ -56,15 +57,41 @@ class Engine:
         self.jobs = {}
         self.settlement_failures = 0
         self.metrics = Metrics(admission)
+        self.ledger_healthy = True
+        self.runtime_healthy = True
+
+    def ledger(self, operation, *args, **kwargs):
+        if not self.ledger_healthy:
+            raise GatewayError(
+                "ledger_unavailable", "Durable request storage is unavailable."
+            )
+        try:
+            return operation(*args, **kwargs)
+        except (OSError, sqlite3.Error) as error:
+            self.ledger_healthy = False
+            raise GatewayError(
+                "ledger_unavailable", "Durable request storage is unavailable."
+            ) from error
+
+    def check_ready(self):
+        if not self.ledger_healthy:
+            raise GatewayError(
+                "ledger_unavailable", "Durable request storage is unavailable."
+            )
+        if not self.runtime_healthy:
+            raise GatewayError(
+                "runtime_unavailable", "Worker cleanup requires operator recovery."
+            )
 
     async def submit(
         self, tenant: str, request: GenerationRequest, limits: TenantLimits
     ):
+        self.check_ready()
         if self.admission.draining:
             raise GatewayError("draining", "The gateway is draining.")
         specs = self.router.registry.for_model(request.model)
         job = Job(tenant, request)
-        self.store.create(tenant, request.request_id, fingerprint(request))
+        self.ledger(self.store.create, tenant, request.request_id, fingerprint(request))
         try:
             reservation = await self.coordinator.reserve(
                 tenant,
@@ -74,8 +101,12 @@ class Engine:
                 limits,
             )
         except GatewayError as error:
-            self.store.finish(
-                tenant, request.request_id, "failed", error_code=error.code
+            self.ledger(
+                self.store.finish,
+                tenant,
+                request.request_id,
+                "failed",
+                error_code=error.code,
             )
             raise
         key = cache_key(tenant, specs[0].revision, request) if self.cache_ttl else None
@@ -119,6 +150,8 @@ class Engine:
         actual_tokens = reservation.tokens
         text, backend, ttft = "", "", None
         state, error_code = "failed", None
+        terminal_error = None
+        response = None
         cached = False
         timer = asyncio.get_running_loop().call_at(
             job.deadline, job.cancel, "deadline_exceeded"
@@ -141,7 +174,7 @@ class Engine:
             else:
                 lease = await self._acquire(job)
                 job.phase = "running"
-                self.store.start(job.tenant, request.request_id, "pending")
+                self.ledger(self.store.start, job.tenant, request.request_id, "pending")
                 stream = self.router.stream(request, job.stop)
                 pieces = 0
                 final = None
@@ -172,6 +205,14 @@ class Engine:
                         "backend_failed", "Backend did not return final usage."
                     )
                 usage, reason = final.usage, final.finish_reason
+                if usage.output_tokens > request.max_new_tokens or reason not in {
+                    "stop",
+                    "length",
+                    "cancelled",
+                }:
+                    raise GatewayError(
+                        "backend_failed", "Backend returned invalid final usage."
+                    )
                 actual_tokens = usage.output_tokens
                 job.raise_if_cancelled()
                 if key and reason in {"stop", "length"}:
@@ -199,7 +240,7 @@ class Engine:
                 latency_ms=(time.monotonic() - job.started) * 1000,
                 ttft_ms=ttft,
             )
-            job.queue.put_nowait({"type": "result", "response": response.dict()})
+
         except GatewayError as error:
             error_code = error.code
             state = (
@@ -207,44 +248,91 @@ class Engine:
                 if error.code == "deadline_exceeded"
                 else ("cancelled" if error.code == "cancelled" else "failed")
             )
-            job.queue.put_nowait(
-                {"type": "error", **error.payload(), "status": error.status}
-            )
+            terminal_error = error
         except asyncio.CancelledError:
             state, error_code = "cancelled", "cancelled"
             job.stop.set()
+            terminal_error = GatewayError("cancelled", "Request was cancelled.", 499)
+        except Exception:
+            state, error_code = "failed", "backend_failed"
+            terminal_error = GatewayError(
+                "backend_failed", "The inference backend failed."
+            )
         finally:
             timer.cancel()
-            if stream is not None:
-                await stream.aclose()
-            if lease is not None:
-                await lease.release()
-            self.store.finish(
-                job.tenant,
-                request.request_id,
-                state,
-                input_tokens=usage.input_tokens,
-                output_tokens=usage.output_tokens,
-                latency_ms=(time.monotonic() - job.started) * 1000,
-                ttft_ms=ttft,
-                cached=cached,
-                error_code=error_code,
-            )
             try:
-                await self.coordinator.settle(reservation, actual_tokens)
-            except GatewayError:
-                self.settlement_failures += 1
-            self.metrics.observe(
-                job.tenant,
-                state,
-                cached,
-                usage.output_tokens,
-                time.monotonic() - job.started,
-                ttft / 1000 if ttft is not None else None,
-            )
-            job.phase = state
-            self.jobs.pop((job.tenant, request.request_id), None)
-            job.queue.put_nowait(None)
+                if stream is not None:
+                    await stream.aclose()
+            except Exception:
+                self.runtime_healthy = False
+                state, error_code = "failed", "backend_failed"
+                terminal_error = GatewayError(
+                    "backend_failed", "Backend cleanup failed."
+                )
+            finally:
+                try:
+                    if lease is not None:
+                        await lease.release()
+                except Exception:
+                    self.runtime_healthy = False
+                    state, error_code = "failed", "runtime_unavailable"
+                    terminal_error = GatewayError(
+                        "runtime_unavailable",
+                        "Worker cleanup requires operator recovery.",
+                    )
+            try:
+                written = self.ledger(
+                    self.store.finish,
+                    job.tenant,
+                    request.request_id,
+                    state,
+                    input_tokens=usage.input_tokens,
+                    output_tokens=usage.output_tokens,
+                    latency_ms=(time.monotonic() - job.started) * 1000,
+                    ttft_ms=ttft,
+                    cached=cached,
+                    error_code=error_code,
+                )
+                if not written:
+                    self.ledger_healthy = False
+                    raise GatewayError(
+                        "ledger_unavailable",
+                        "Durable request completion could not be verified.",
+                    )
+            except GatewayError as error:
+                state = "failed"
+                terminal_error = error
+            finally:
+                try:
+                    await self.coordinator.settle(reservation, actual_tokens)
+                except Exception:
+                    self.settlement_failures += 1
+                finally:
+                    try:
+                        self.metrics.observe(
+                            job.tenant,
+                            state,
+                            cached,
+                            usage.output_tokens,
+                            time.monotonic() - job.started,
+                            ttft / 1000 if ttft is not None else None,
+                        )
+                    finally:
+                        job.phase = state
+                        self.jobs.pop((job.tenant, request.request_id), None)
+                        if terminal_error is not None:
+                            job.queue.put_nowait(
+                                {
+                                    "type": "error",
+                                    **terminal_error.payload(),
+                                    "status": terminal_error.status,
+                                }
+                            )
+                        elif response is not None:
+                            job.queue.put_nowait(
+                                {"type": "result", "response": response.dict()}
+                            )
+                        job.queue.put_nowait(None)
 
     async def close(self):
         await self.admission.drain()

@@ -125,3 +125,21 @@ def test_global_drain_refuses_cached_and_uncached_new_admission(tmp_path):
         response = client.post("/v1/generate", json=payload, headers=tenant)
         assert response.status_code == 503
         assert response.json()["error"]["code"] == "draining"
+
+
+def test_ledger_failure_returns_terminal_error_and_fails_readiness(tmp_path):
+    with make_client(tmp_path) as client:
+
+        def failed_finish(*args, **kwargs):
+            raise OSError("private ledger path")
+
+        client.app.state.engine.store.finish = failed_finish
+        response = client.post(
+            "/v1/generate",
+            headers={"Authorization": "Bearer " + ALPHA},
+            json={"model": "flan-small", "prompt": "hello"},
+        )
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "ledger_unavailable"
+        assert "private" not in response.text
+        assert client.get("/health/ready").status_code == 503
