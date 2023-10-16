@@ -513,3 +513,33 @@ footer {
     transition: none !important;
   }
 }
+
+.backend-control {
+  grid-column: 2 / -1;
+}
+.backend-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.backend-actions button {
+  font-size: 11px;
+  padding: 7px 13px;
+}
+.confirmation {
+  background: #f3f4ec;
+  padding: 13px 16px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.confirmation p {
+  margin: 0 0 12px;
+}
+.confirmation button {
+  font-size: 11px;
+  margin-right: 8px;
+}
+.inline-error {
+  font-size: 12px;
+  color: #903d25;
+}

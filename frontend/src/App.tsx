@@ -1,6 +1,7 @@
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { request, Summary } from "./api";
 import "./style.css";
+import BackendControl from "./BackendControl";
 
 export default function App() {
   const [draft, setDraft] = useState("");
@@ -203,6 +204,11 @@ export default function App() {
                           </strong>
                           <span className="helper block">workers occupied</span>
                         </div>
+                        <BackendControl
+                          backend={backend}
+                          credential={key}
+                          onChanged={() => refresh()}
+                        />
                       </article>
                     ))}
                   </div>
