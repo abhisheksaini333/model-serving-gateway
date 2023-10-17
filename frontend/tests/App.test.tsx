@@ -47,7 +47,10 @@ const summary = {
 };
 
 test("connects with an in-memory operator credential and shows real capacity", async () => {
-  const fetcher = vi.fn(async () => ({ ok: true, json: async () => summary }));
+  const fetcher = vi.fn(async (path: string) => ({
+    ok: true,
+    json: async () => (path === "/ops/summary" ? summary : []),
+  }));
   vi.stubGlobal("fetch", fetcher);
   render(<App />);
   fireEvent.change(screen.getByLabelText("Operator credential"), {

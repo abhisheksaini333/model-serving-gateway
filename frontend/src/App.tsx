@@ -2,6 +2,7 @@ import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { request, Summary } from "./api";
 import "./style.css";
 import BackendControl from "./BackendControl";
+import Requests from "./Requests";
 
 export default function App() {
   const [draft, setDraft] = useState("");
@@ -255,6 +256,7 @@ export default function App() {
                     </p>
                   )}
                 </section>
+                <Requests credential={key} />
                 {summary.settlement_failures > 0 && (
                   <div className="notice" role="status">
                     Some quota settlements need recovery. Review the Redis
