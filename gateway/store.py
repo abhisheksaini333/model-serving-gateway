@@ -125,7 +125,8 @@ class Store:
         latency_ms: float | None = None,
         ttft_ms: float | None = None,
         cached: bool = False,
-        error_code: str | None = None
+        error_code: str | None = None,
+        backend: str | None = None
     ) -> bool:
         if state not in {"completed", "failed", "cancelled", "expired", "abandoned"}:
             raise ValueError("terminal state required")
@@ -135,7 +136,7 @@ class Store:
             cursor = connection.execute(
                 """
                 UPDATE requests SET state = ?, updated = ?, input_tokens = ?,
-                    output_tokens = ?, latency_ms = ?, ttft_ms = ?, cached = ?, error_code = ?
+                    output_tokens = ?, latency_ms = ?, ttft_ms = ?, cached = ?, error_code = ?, backend = COALESCE(?, backend)
                 WHERE tenant = ? AND request_id = ? AND state IN ('queued', 'running')
             """,
                 (
@@ -147,6 +148,7 @@ class Store:
                     ttft_ms,
                     int(cached),
                     error_code,
+                    backend,
                     tenant,
                     request_id,
                 ),

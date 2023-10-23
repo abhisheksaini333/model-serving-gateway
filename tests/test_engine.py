@@ -59,6 +59,7 @@ def test_complete_run_accounting_cache_hit_and_tenant_isolation(tmp_path):
         assert backend.calls == 2
         assert store.get("alpha", "one")["state"] == "completed"
         assert store.get("alpha", "one")["output_tokens"] == 1
+        assert store.get("alpha", "one")["backend"] == "cpu-a"
         assert engine.admission.snapshot()["active"] == 0
         await engine.close()
         store.close()

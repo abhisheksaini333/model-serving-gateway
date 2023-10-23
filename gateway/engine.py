@@ -292,6 +292,7 @@ class Engine:
                     ttft_ms=ttft,
                     cached=cached,
                     error_code=error_code,
+                    backend=backend or None,
                 )
                 if not written:
                     self.ledger_healthy = False
