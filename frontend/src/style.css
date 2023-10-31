@@ -597,3 +597,46 @@ footer {
   margin: 0;
   overflow-wrap: anywhere;
 }
+
+.probe-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 0 25px;
+}
+.probe-form > div {
+  flex: 1;
+  max-width: 350px;
+}
+.probe-form label {
+  font-size: 12px;
+  margin-top: 0;
+}
+.probe-form input {
+  padding: 9px 12px;
+}
+.probe-status {
+  margin: 20px 25px;
+  font-family: Menlo, monospace;
+  font-size: 11px;
+  color: #36512b;
+}
+.probe-output {
+  font-family: Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #172d28;
+  color: #e7f3d8;
+  padding: 23px 25px;
+  margin: 20px 0 0;
+}
+@media (max-width: 740px) {
+  .probe-form {
+    display: block;
+  }
+  .probe-form button {
+    margin: 12px 8px 0 0;
+  }
+}

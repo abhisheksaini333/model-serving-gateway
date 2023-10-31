@@ -3,6 +3,7 @@ import { request, Summary } from "./api";
 import "./style.css";
 import BackendControl from "./BackendControl";
 import Requests from "./Requests";
+import Probe from "./Probe";
 
 export default function App() {
   const [draft, setDraft] = useState("");
@@ -257,6 +258,7 @@ export default function App() {
                   )}
                 </section>
                 <Requests credential={key} />
+                <Probe />
                 {summary.settlement_failures > 0 && (
                   <div className="notice" role="status">
                     Some quota settlements need recovery. Review the Redis
