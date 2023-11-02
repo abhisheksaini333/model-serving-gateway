@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from .contracts import GenerationRequest
 from .errors import GatewayError
 from .operations import operator_routes
+from .transport import TransportBoundary
 
 
 def event_error(event):
@@ -50,6 +51,7 @@ def create_app(engine, auth, owner=None):
                 owner.__exit__(None, None, None)
 
     app = FastAPI(title="Model Serving Gateway", version="0.1.0", lifespan=lifespan)
+    app.add_middleware(TransportBoundary)
     app.state.engine = engine
     app.state.auth = auth
 

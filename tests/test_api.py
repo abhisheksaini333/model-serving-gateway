@@ -143,3 +143,16 @@ def test_ledger_failure_returns_terminal_error_and_fails_readiness(tmp_path):
         assert response.json()["error"]["code"] == "ledger_unavailable"
         assert "private" not in response.text
         assert client.get("/health/ready").status_code == 503
+
+
+def test_transport_rejects_oversized_bodies_and_sets_browser_boundaries(tmp_path):
+    with make_client(tmp_path) as client:
+        response = client.post(
+            "/v1/generate",
+            content=b"x" * 131073,
+            headers={"Content-Type": "application/json"},
+        )
+        assert response.status_code == 413
+        headers = client.get("/health/live").headers
+        assert headers["x-content-type-options"] == "nosniff"
+        assert "frame-ancestors 'none'" in headers["content-security-policy"]
