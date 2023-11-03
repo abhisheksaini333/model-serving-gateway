@@ -17,7 +17,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def make_client(tmp_path):
+def make_client(tmp_path, static_dir=None):
     coordinator = RedisCoordinator(
         os.environ["TEST_REDIS_URL"], "api-" + uuid.uuid4().hex
     )
@@ -30,7 +30,7 @@ def make_client(tmp_path):
     auth = Authenticator(
         {"alpha": (ALPHA, TenantLimits()), "beta": (BETA, TenantLimits())}, OPERATOR
     )
-    return TestClient(create_app(engine, auth))
+    return TestClient(create_app(engine, auth, static_dir=static_dir))
 
 
 def test_authenticated_json_contract_and_safe_errors(tmp_path):
@@ -156,3 +156,13 @@ def test_transport_rejects_oversized_bodies_and_sets_browser_boundaries(tmp_path
         headers = client.get("/health/live").headers
         assert headers["x-content-type-options"] == "nosniff"
         assert "frame-ancestors 'none'" in headers["content-security-policy"]
+
+
+def test_compiled_console_is_served_without_shadowing_api(tmp_path):
+    static = tmp_path / "console"
+    static.mkdir()
+    (static / "index.html").write_text("<h1>Operator console</h1>")
+    with make_client(tmp_path, static_dir=static) as client:
+        assert "Operator console" in client.get("/").text
+        assert client.get("/health/live").json() == {"status": "live"}
+        assert client.get("/%2e%2e/ledger.sqlite").status_code == 404

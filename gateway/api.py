@@ -1,9 +1,11 @@
 """Normalized JSON and SSE transport. No SSE bytes precede the first backend output."""
 import asyncio
 import json
+from pathlib import Path
 from contextlib import asynccontextmanager
 import anyio
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, StreamingResponse
 from .contracts import GenerationRequest
 from .errors import GatewayError
@@ -39,7 +41,7 @@ async def stop_watcher(task):
     await asyncio.gather(task, return_exceptions=True)
 
 
-def create_app(engine, auth, owner=None):
+def create_app(engine, auth, owner=None, static_dir=None):
     @asynccontextmanager
     async def lifespan(app):
         try:
@@ -149,4 +151,12 @@ def create_app(engine, auth, owner=None):
         return {"request_id": request_id, "cancellation_requested": True}
 
     app.include_router(operator_routes(engine, auth))
+    if static_dir is None:
+        packaged = Path(__file__).parent / "static"
+        development = Path(__file__).parent.parent / "frontend" / "dist"
+        static_dir = packaged if packaged.is_dir() else development
+    if Path(static_dir).is_dir():
+        app.mount(
+            "/", StaticFiles(directory=str(static_dir), html=True), name="console"
+        )
     return app
