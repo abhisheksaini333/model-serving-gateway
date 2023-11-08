@@ -1,4 +1,6 @@
 """Operator routes expose controls and measurements without generation text."""
+import os
+import platform
 from typing import Literal
 from fastapi import APIRouter, Request, Query
 from fastapi.responses import Response
@@ -24,6 +26,12 @@ def operator_routes(engine, auth):
     async def summary(request: Request):
         authorize(request)
         return {
+            "runtime": {
+                "platform": platform.platform(),
+                "architecture": platform.machine(),
+                "python": platform.python_version(),
+                "logical_cpus": os.cpu_count(),
+            },
             "admission": engine.admission.snapshot(),
             "backends": engine.router.snapshot(),
             "usage": engine.store.usage(),

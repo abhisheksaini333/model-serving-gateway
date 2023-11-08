@@ -166,3 +166,14 @@ def test_compiled_console_is_served_without_shadowing_api(tmp_path):
         assert "Operator console" in client.get("/").text
         assert client.get("/health/live").json() == {"status": "live"}
         assert client.get("/%2e%2e/ledger.sqlite").status_code == 404
+
+
+def test_operator_metadata_identifies_the_actual_serving_platform(tmp_path):
+    import platform
+
+    with make_client(tmp_path) as client:
+        result = client.get(
+            "/ops/summary", headers={"Authorization": "Bearer " + OPERATOR}
+        ).json()
+        assert result["runtime"]["architecture"] == platform.machine()
+        assert result["runtime"]["python"] == platform.python_version()

@@ -194,7 +194,8 @@ async def run(args):
         "model": "google/flan-t5-small",
         "revision": initial["backends"][0]["revision"],
         "hardware": {
-            "platform": platform.platform(),
+            "server": initial["runtime"],
+            "client_platform": platform.platform(),
             "machine": platform.machine(),
             "logical_cpus": os.cpu_count(),
             "torch_threads": 2,
