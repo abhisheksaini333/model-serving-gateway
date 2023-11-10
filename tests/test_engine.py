@@ -151,6 +151,36 @@ def test_queued_cancellation_even_before_runner_starts_cleans_reservation(tmp_pa
         assert engine.admission.active == 0
         assert store.get("alpha", "queued")["state"] == "cancelled"
         assert await coordinator.client.zcard(coordinator.tenant_keys("alpha")[1]) == 0
+        assert (
+            await coordinator.client.hget(coordinator.tenant_keys("alpha")[0], "tokens")
+            == "0"
+        )
+        await engine.close()
+        store.close()
+
+    asyncio.run(scenario())
+
+
+def test_unavailable_backend_refunds_output_token_reservation(tmp_path):
+    async def scenario():
+        coordinator = RedisCoordinator(
+            os.environ["TEST_REDIS_URL"], "unused-" + uuid.uuid4().hex
+        )
+        store = Store(tmp_path / "ledger.sqlite")
+        router = Router([CountingBackend()])
+        router.set_mode("cpu-a", "disabled")
+        engine = Engine(router, Admission(1, 0), coordinator, store, cache_ttl=0)
+        job = await engine.submit(
+            "alpha",
+            GenerationRequest(model="flan-small", prompt="hello"),
+            TenantLimits(),
+        )
+        events = [event async for event in job.events()]
+        assert events[-1]["error"]["code"] == "unavailable"
+        assert (
+            await coordinator.client.hget(coordinator.tenant_keys("alpha")[0], "tokens")
+            == "0"
+        )
         await engine.close()
         store.close()
 

@@ -147,7 +147,7 @@ class Engine:
         lease = None
         stream = None
         usage = Usage(input_tokens=0, output_tokens=0)
-        actual_tokens = reservation.tokens
+        actual_tokens = 0
         text, backend, ttft = "", "", None
         state, error_code = "failed", None
         terminal_error = None
@@ -175,6 +175,8 @@ class Engine:
                 lease = await self._acquire(job)
                 job.phase = "running"
                 self.ledger(self.store.start, job.tenant, request.request_id, "pending")
+                # Until final usage arrives, an interrupted backend is charged conservatively.
+                actual_tokens = reservation.tokens
                 stream = self.router.stream(request, job.stop)
                 pieces = 0
                 final = None
@@ -242,6 +244,8 @@ class Engine:
             )
 
         except GatewayError as error:
+            if error.code in {"unavailable", "context_limit", "output_limit"}:
+                actual_tokens = 0
             error_code = error.code
             state = (
                 "expired"
