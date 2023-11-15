@@ -93,13 +93,29 @@ class Engine:
         job = Job(tenant, request)
         self.ledger(self.store.create, tenant, request.request_id, fingerprint(request))
         try:
-            reservation = await self.coordinator.reserve(
+            reservation = await asyncio.wait_for(
+                self.coordinator.reserve(
+                    tenant,
+                    request.request_id,
+                    request.max_new_tokens,
+                    request.timeout_ms,
+                    limits,
+                ),
+                timeout=max(0, job.deadline - time.monotonic()),
+            )
+        except asyncio.TimeoutError:
+            # Redis may have applied an interrupted command. Its reservation expires
+            # conservatively; never start inference after an ambiguous admission.
+            self.ledger(
+                self.store.finish,
                 tenant,
                 request.request_id,
-                request.max_new_tokens,
-                request.timeout_ms,
-                limits,
+                "expired",
+                error_code="deadline_exceeded",
             )
+            raise GatewayError(
+                "deadline_exceeded", "Request deadline expired.", 504
+            ) from None
         except GatewayError as error:
             self.ledger(
                 self.store.finish,
