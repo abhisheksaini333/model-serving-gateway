@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools==67.8.0", "wheel==0.40.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "model-serving-gateway"
+version = "0.1.0"
+description = "Bounded local CPU inference with tenant admission and an operator console"
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+license = {text = "MIT"}
+authors = [{name = "Abhishek Saini"}]
+dependencies = [
+  "fastapi==0.99.0", "uvicorn==0.22.0", "redis==4.6.0",
+  "prometheus-client==0.17.0", "transformers==4.30.2", "torch==1.13.1",
+  "sentencepiece==0.1.99", "numpy==1.23.5"
+]
+
+[project.scripts]
+model-serving-gateway = "gateway.__main__:main"
+gateway-download = "gateway.download:main"
+gateway-setup = "gateway.setup:main"
+gateway-backup = "gateway.backup:main"
+
+[tool.setuptools.packages.find]
+include = ["gateway*"]
+
+[tool.setuptools.package-data]
+gateway = ["data/*.json"]
