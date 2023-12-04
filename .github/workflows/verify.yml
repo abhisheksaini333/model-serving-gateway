@@ -1,0 +1,35 @@
+name: Verify CPU gateway
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: docker/setup-qemu-action@2b82ce82d56a2a04d2637cd93a637ae1b359c0a7
+        with:
+          platforms: arm64
+          image: tonistiigi/binfmt:qemu-v7.0.0@sha256:66e11bea77a5ea9d6f0fe79b57cd2b189b5d15b93a2bdb925be22949232e4e55
+      - name: Build image and test the React console
+        run: docker build --platform linux/arm64 --tag serving-ci .
+      - name: Verify Python lifecycle with actual Redis
+        run: |
+          docker network create serving-ci
+          docker run -d --name serving-ci-redis --network serving-ci redis:7.0.11-alpine@sha256:121bac949fb5f623b9fa0b4e4c9fb358ffd045966e754cfa3eb9963f3af2fe3b
+          for attempt in $(seq 1 30); do
+            if docker exec serving-ci-redis redis-cli ping; then break; fi
+            sleep 1
+          done
+          docker run --rm --platform linux/arm64 --network serving-ci -e TEST_REDIS_URL=redis://serving-ci-redis:6379/0 -v "$PWD/tests:/tests:ro" serving-ci python -m pytest -p no:cacheprovider /tests -q
+      - name: Verify actual checkpoint streaming and cancellation
+        run: |
+          mkdir -p "$RUNNER_TEMP/serving-model"
+          docker run --rm --platform linux/arm64 --user "$(id -u):$(id -g)" -v "$RUNNER_TEMP/serving-model:/models" serving-ci python -m gateway.download /models
+          docker run --rm --platform linux/arm64 -e PYTHONPATH=/app -v "$RUNNER_TEMP/serving-model:/models:ro" -v "$PWD/scripts:/scripts:ro" -v "$PWD/evidence:/app/evidence:ro" serving-ci python /scripts/model_smoke.py --model-path /models --output /tmp/model-smoke.json
+      - name: Stop dedicated test resources
+        if: always()
+        run: |
+          docker rm -f serving-ci-redis || true
+          docker network rm serving-ci || true

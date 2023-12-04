@@ -15,6 +15,7 @@ services:
     platform: linux/arm64
     env_file: ${GATEWAY_ENV_FILE:-.env}
     environment:
+      GATEWAY_DATABASE: /data/gateway.sqlite
       GATEWAY_MODEL_PATH: /models/flan-t5-small
       GATEWAY_REDIS_URL: redis://redis:6379/0
     ports:
