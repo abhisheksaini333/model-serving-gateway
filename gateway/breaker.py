@@ -19,6 +19,12 @@ class CircuitBreaker:
             return "half_open"
         return "open" if self.opened_at is not None else "closed"
 
+    @property
+    def available(self):
+        return self.opened_at is None or (
+            not self.probe and self.clock() - self.opened_at >= self.cooldown
+        )
+
     def acquire(self):
         if self.opened_at is None:
             return True

@@ -75,7 +75,7 @@ def create_app(engine, auth, owner=None, static_dir=None):
         if engine.admission.draining:
             raise GatewayError("draining", "The gateway is draining.")
         if not any(
-            item["mode"] == "enabled" and item["circuit"] != "open"
+            item["mode"] == "enabled" and item["recovery_available"]
             for item in engine.router.snapshot()
         ):
             raise GatewayError("unavailable", "No inference backend is available.")

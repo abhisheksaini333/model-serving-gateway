@@ -177,3 +177,23 @@ def test_operator_metadata_identifies_the_actual_serving_platform(tmp_path):
         ).json()
         assert result["runtime"]["architecture"] == platform.machine()
         assert result["runtime"]["python"] == platform.python_version()
+
+
+def test_readiness_allows_recovery_probe_after_breaker_cooldown(tmp_path):
+    from gateway.breaker import CircuitBreaker
+
+    now = [0.0]
+    with make_client(tmp_path) as client:
+        breaker = CircuitBreaker(1, 5, clock=lambda: now[0])
+        client.app.state.engine.router.breakers["cpu-a"] = breaker
+        breaker.failure()
+        assert client.get("/health/ready").status_code == 503
+        now[0] = 5.0
+        assert client.get("/health/ready").status_code == 200
+        assert breaker.state == "open"  # Readiness must not consume the recovery probe.
+        response = client.post(
+            "/v1/generate",
+            json={"model": "flan-small", "prompt": "hello"},
+            headers={"Authorization": "Bearer " + ALPHA},
+        )
+        assert response.status_code == 200 and breaker.state == "closed"

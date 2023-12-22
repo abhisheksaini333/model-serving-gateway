@@ -34,6 +34,7 @@ class Router:
                 capacity=spec.capacity,
                 mode=self.modes[spec.name],
                 circuit=self.breakers[spec.name].state,
+                recovery_available=self.breakers[spec.name].available,
                 failures=self.breakers[spec.name].failures,
             )
             for spec in self.registry.backends
