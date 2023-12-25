@@ -1,0 +1,25 @@
+{
+  "method": "actual streamed request, SIGKILL container, restart same persistent volume",
+  "observed_stream_before_kill": true,
+  "record": {
+    "tenant": "alpha",
+    "request_id": "recovery-a4c68761949c40d4bb0d3e72449fd934",
+    "fingerprint": "1153567049191196ce3d993315b6fe55b1790cb3899455c222f4e36c4c0c3504",
+    "state": "abandoned",
+    "backend": "pending",
+    "created": 1790756212.2386596,
+    "updated": 1790756218.2367542,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_ms": null,
+    "ttft_ms": null,
+    "cached": 0,
+    "error_code": "process_restart"
+  },
+  "duplicate_status": 409,
+  "backup": {
+    "integrity": "ok",
+    "requests": 33,
+    "destination": "/tmp/verified-recovery.sqlite"
+  }
+}

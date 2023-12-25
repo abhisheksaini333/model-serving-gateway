@@ -1,0 +1,37 @@
+{
+  "adapter": "actual-transformers-cpu",
+  "model": "google/flan-t5-small",
+  "revision": "371f99f1df1429771f01227c93bd662f5eec2480",
+  "cpu_threads": 2,
+  "platform": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.31",
+  "normal": {
+    "prompt": "Answer with the name only. Mira owns the Atlas service. Who owns Atlas?",
+    "text": "sarah",
+    "chunks": 1,
+    "latency_ms": 208.98150000721216,
+    "ttft_ms": 208.39933305978775,
+    "usage": {
+      "input_tokens": 20,
+      "output_tokens": 5
+    },
+    "finish_reason": "stop",
+    "active_workers_after": 0,
+    "active_workers_at_cancel": null,
+    "tokens_per_second": 23.92556278822501
+  },
+  "cancelled": {
+    "prompt": "Translate English to German: The little girl walks along the river every morning with her grandfather. They watch the birds and talk about the flowers in the garden.",
+    "text": "Das kleine",
+    "chunks": 2,
+    "latency_ms": 82.3544169543311,
+    "ttft_ms": 80.37866698578,
+    "usage": {
+      "input_tokens": 33,
+      "output_tokens": 2
+    },
+    "finish_reason": "cancelled",
+    "active_workers_after": 0,
+    "active_workers_at_cancel": 1,
+    "tokens_per_second": 24.285279089633796
+  }
+}
