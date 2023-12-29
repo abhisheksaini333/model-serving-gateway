@@ -1,4 +1,5 @@
-FROM node:16.16.0-bullseye-slim@sha256:cda7229eb72b7534396e7b58ba5b9f2454aee188317e058cbbf22686e5d07e2f AS console
+# The console emits portable static assets; run Node on the builder architecture.
+FROM --platform=$BUILDPLATFORM node:16.16.0-bullseye-slim@sha256:cda7229eb72b7534396e7b58ba5b9f2454aee188317e058cbbf22686e5d07e2f AS console
 WORKDIR /console
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
