@@ -24,8 +24,8 @@ class GenerationRequest(BaseModel):
 
 
 class Usage(BaseModel):
-    input_tokens: int = Field(..., ge=0)
-    output_tokens: int = Field(..., ge=0)
+    input_tokens: conint(strict=True, ge=0)
+    output_tokens: conint(strict=True, ge=0)
 
 
 class GenerationResponse(BaseModel):
