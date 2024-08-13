@@ -1,10 +1,11 @@
 """A circuit grants one recovery probe after its cooldown."""
 import time
+import math
 
 
 class CircuitBreaker:
     def __init__(self, threshold=3, cooldown=10, *, clock=time.monotonic):
-        if threshold < 1 or cooldown <= 0:
+        if type(threshold) is not int or threshold < 1 or type(cooldown) not in (int, float) or not math.isfinite(cooldown) or cooldown <= 0:
             raise ValueError("positive circuit threshold and cooldown required")
         self.threshold = threshold
         self.cooldown = cooldown
