@@ -18,8 +18,8 @@ class BackendSpec:
             if not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", identifier):
                 raise ValueError("invalid backend or model identifier")
         if (
-            not self.revision
-            or min(self.capacity, self.max_input_tokens, self.max_output_tokens) < 1
+            not isinstance(self.revision, str) or not self.revision.strip()
+            or any(type(v) is not int or v < 1 for v in (self.capacity, self.max_input_tokens, self.max_output_tokens))
         ):
             raise ValueError("revision and positive backend limits are required")
 
