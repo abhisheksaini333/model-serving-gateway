@@ -86,7 +86,9 @@ class Router:
                 if emitted:
                     raise last_error from None
             finally:
-                await stream.aclose()
-                self.active[name] -= 1
-                breaker.abandon()
+                try:
+                    await stream.aclose()
+                finally:
+                    self.active[name] -= 1
+                    breaker.abandon()
         raise last_error
