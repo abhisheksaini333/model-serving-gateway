@@ -62,12 +62,21 @@ class Router:
                 continue
             self.active[name] += 1
             emitted = False
+            complete = False
             stream = self.backends[name].stream(request, cancel)
             try:
                 async for event in stream:
+                    if complete:
+                        raise GatewayError("backend_failed", "Backend emitted data after completion.")
+                    if event.usage is not None:
+                        if event.finish_reason not in {"stop", "length", "cancelled"}:
+                            raise GatewayError("backend_failed", "Backend completion is invalid.")
+                        complete = True
                     if event.text or event.usage is not None:
                         emitted = True
                         yield RoutedEvent(name, event)
+                if not complete:
+                    raise GatewayError("backend_failed", "Backend stream ended without usage.")
                 breaker.success()
                 return
             except GatewayError as error:
