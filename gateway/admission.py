@@ -1,5 +1,6 @@
 """Bounded FIFO admission; a lease is released only after its worker stops."""
 import asyncio
+import math
 from collections import deque
 from .errors import GatewayError
 
@@ -19,7 +20,7 @@ class Lease:
 
 class Admission:
     def __init__(self, capacity: int, max_queue: int):
-        if capacity < 1 or max_queue < 0:
+        if type(capacity) is not int or type(max_queue) is not int or capacity < 1 or max_queue < 0:
             raise ValueError("positive capacity and nonnegative queue required")
         self.capacity = capacity
         self.max_queue = max_queue
@@ -38,6 +39,8 @@ class Admission:
         )
 
     async def acquire(self, tenant: str, deadline: float) -> Lease:
+        if type(deadline) not in (int, float) or not math.isfinite(deadline):
+            raise ValueError("Admission deadline must be finite")
         waiter = object()
         loop = asyncio.get_running_loop()
         async with self.condition:
