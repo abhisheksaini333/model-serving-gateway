@@ -19,7 +19,7 @@ class Authenticator:
         if not tenants or len(keys) != len(set(keys)):
             raise ValueError("unique tenant and operator credentials required")
         if any(
-            not isinstance(key, str) or not 24 <= len(key) <= 256 or not key.isascii()
+            not isinstance(key, str) or not 24 <= len(key) <= 256 or not key.isascii() or any(ord(c) < 33 or ord(c) > 126 for c in key)
             for key in keys
         ):
             raise ValueError("credentials must contain 24 to 256 ASCII characters")
