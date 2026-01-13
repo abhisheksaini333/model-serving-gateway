@@ -10,11 +10,11 @@ export class EventDecoder {
     this.pending += chunk;
     if (this.pending.length > 131072)
       throw new Error("Stream event exceeds the size limit.");
-    const blocks = this.pending.split("\n\n");
+    const blocks = this.pending.split(/\r?\n\r?\n/);
     this.pending = blocks.pop() || "";
-    return blocks.filter(Boolean).map((block) => {
+    return blocks.filter((block) => block.split(/\r?\n/).some((line) => line.startsWith("data:"))).map((block) => {
       const data = block
-        .split("\n")
+        .split(/\r?\n/)
         .filter((line) => line.startsWith("data:"))
         .map((line) => line.slice(5).trimStart())
         .join("\n");
