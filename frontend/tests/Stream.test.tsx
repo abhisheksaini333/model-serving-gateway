@@ -5,11 +5,11 @@ test("parses SSE across network chunks without losing partial data", () => {
   expect(decoder.push('event: token\ndata: {"type":"token","te')).toEqual([]);
   expect(
     decoder.push(
-      'xt":"hello"}\n\nevent: result\ndata: {"type":"result","response":{}}\n\n'
+      'xt":"hello"}\n\nevent: result\ndata: {"type":"result","response":{"usage":{"output_tokens":1},"latency_ms":1}}\n\n'
     )
   ).toEqual([
     { type: "token", text: "hello" },
-    { type: "result", response: {} },
+    { type: "result", response: {usage: {output_tokens: 1}, latency_ms: 1} },
   ]);
 });
 test("rejects oversized incomplete events", () => {
