@@ -6,6 +6,9 @@ export interface StreamEvent {
 }
 export class EventDecoder {
   private pending = "";
+  finish() {
+    if (this.pending.trim()) throw new Error("Stream ended with an incomplete event.");
+  }
   push(chunk: string): StreamEvent[] {
     this.pending += chunk;
     const blocks = this.pending.split(/\r?\n\r?\n/);
@@ -36,15 +39,24 @@ export async function consumeEvents(
   receive: (event: StreamEvent) => void
 ) {
   const reader = body.getReader();
-  const text = new TextDecoder();
+  const text = new TextDecoder("utf-8", {fatal: true});
+  let terminal = false;
+  const deliver = (event: StreamEvent) => {
+    if (terminal) throw new Error("Stream emitted data after completion.");
+    terminal = event.type === "result" || event.type === "error";
+    receive(event);
+  };
   const events = new EventDecoder();
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       for (const event of events.push(text.decode(value, { stream: true })))
-        receive(event);
+        deliver(event);
     }
+    for (const event of events.push(text.decode())) deliver(event);
+    events.finish();
+    if (!terminal) throw new Error("Stream ended before completion.");
   } finally {
     await reader.cancel().catch(() => undefined);
     reader.releaseLock();
