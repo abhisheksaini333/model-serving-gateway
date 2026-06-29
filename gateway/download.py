@@ -6,10 +6,11 @@ import os
 from pathlib import Path
 import tempfile
 from urllib.request import urlopen
-from .artifacts import verify_artifacts
+from .artifacts import verify_artifacts, validate_manifest
 
 
 def download_model(directory, manifest, fetch=urlopen):
+    validate_manifest(manifest)
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     for item in manifest:
