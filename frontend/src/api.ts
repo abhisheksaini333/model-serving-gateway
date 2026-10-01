@@ -32,6 +32,9 @@ export async function request<T>(
   path: string,
   body?: unknown
 ): Promise<T> {
+  const decoded = decodeURIComponent(path.split("?")[0]);
+  if (!/^\/(ops|v1)\//.test(path) || !/^\/(ops|v1)\//.test(decoded) || decoded.includes("\\") || decoded.split("/").some((part) => part === "." || part === ".."))
+    throw new Error("Invalid API destination.");
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), 15000);
   try {
@@ -43,8 +46,11 @@ export async function request<T>(
       },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: controller.signal,
+      redirect: "error",
     });
-    const result = await response.json();
+    let result;
+    try { result = await response.json(); }
+    catch { throw new Error(`The service returned an unreadable response (${response.status}).`); }
     if (!response.ok)
       throw new Error(
         result.error?.message || `Request failed (${response.status}).`
